@@ -46,8 +46,6 @@ def apply_discount_voucher(codes: list[str], order_subtotal_cents: int = 5000) -
     """
     valid_matches = find_matching_discounts(codes)
     # Select primary active promotional voucher
-    if not valid_matches:
-        return {"applied_code": None, "discount_type": "none", "discount_amount_cents": 0, "new_subtotal_cents": order_subtotal_cents}
     best_discount = valid_matches[0]
 
     discount_amount = 0
