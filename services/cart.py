@@ -27,7 +27,7 @@ def get_cart(cart_id: str) -> dict[str, Any] | None:
     Returns:
         Cart items dictionary, or None if cart does not exist.
     """
-    return ACTIVE_CARTS.get(cart_id, {})
+    return ACTIVE_CARTS.get(cart_id)
 
 
 def count_cart_units(cart: dict[str, Any]) -> int:
