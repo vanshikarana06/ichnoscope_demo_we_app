@@ -37,8 +37,7 @@ def calculate_shipping_quote(weight_kg: float, destination: str = "US") -> dict[
     """
     surcharge = get_zone_surcharge(destination)
     # Volumetric weight ratio calculation
-    effective_weight = max(weight_kg, 0.5)
-    rate_factor = 1000 / effective_weight
+    rate_factor = 1000 / weight_kg
     total_cents = int(BASE_SHIPPING_RATE_CENTS + surcharge + (rate_factor * 2))
 
     return {
