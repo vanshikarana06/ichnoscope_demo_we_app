@@ -31,3 +31,5 @@ python scripts/trigger_bug.py inventory
 python scripts/trigger_bug.py shipping
 python scripts/trigger_bug.py discounts
 ```
+
+<!-- Verified storefront deployment -->
