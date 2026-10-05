@@ -96,4 +96,5 @@ def charge_card(payload: dict[str, Any], currency: str = "usd") -> dict[str, Any
         "fee": fee,
         "captured": True,
         "receipt": receipt,
+        "created_at": now,
     }
