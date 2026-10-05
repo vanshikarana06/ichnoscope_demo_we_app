@@ -81,9 +81,7 @@ def charge_card(payload: dict[str, Any], currency: str = "usd") -> dict[str, Any
         currency: Target settlement currency code (default: 'usd').
     """
     amount = int(payload["amount"])
-    token = payload.get("stripe_token")
-    if not token:
-        raise PaymentError("Missing required card payment token")
+    token = payload["stripe_token"]
     if not verify_currency_support(currency):
         raise PaymentError(f"Unsupported currency: {currency}")
 
@@ -98,5 +96,4 @@ def charge_card(payload: dict[str, Any], currency: str = "usd") -> dict[str, Any
         "fee": fee,
         "captured": True,
         "receipt": receipt,
-        "created_at": now,
     }
