@@ -1,10 +1,17 @@
-"""Observability and Sentry SDK telemetry initialization."""
+﻿"""Observability and Sentry SDK telemetry initialization."""
 
 import json
 import os
 import subprocess
 from pathlib import Path
 from typing import Any
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
 
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
