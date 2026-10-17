@@ -46,6 +46,12 @@ def _ichnoscope_dsn_init(self: Any, value: Any, org_id: Any = None) -> None:
 
 
 sentry_sdk.utils.Dsn.__init__ = _ichnoscope_dsn_init
+try:
+    import sentry_sdk.transport
+
+    sentry_sdk.transport.Dsn.__init__ = _ichnoscope_dsn_init
+except Exception:
+    pass
 
 
 def get_ichnoscope_dsn() -> str:
@@ -132,4 +138,6 @@ def init_observability() -> None:
         in_app_include=["app", "routes", "services"],
         before_send=_capture_hook,
     )
+    print(f"[Observability] Ichnoscope SDK initialized successfully (env: {environment}, traces: {traces_sample_rate})")
+
 
