@@ -1,4 +1,4 @@
-﻿"""Observability and Sentry SDK telemetry initialization."""
+"""Observability and Sentry-compatible Ichnoscope SDK telemetry initialization."""
 
 import json
 import os
@@ -14,7 +14,66 @@ except ImportError:
     pass
 
 import sentry_sdk
+import sentry_sdk.utils
 from sentry_sdk.integrations.flask import FlaskIntegration
+from urllib.parse import urlsplit
+
+# Ensure Sentry DSN parser supports Ichnoscope project slugs (e.g. proj_c76fccfd95bd)
+_orig_dsn_init = sentry_sdk.utils.Dsn.__init__
+
+
+def _ichnoscope_dsn_init(self: Any, value: Any, org_id: Any = None) -> None:
+    if isinstance(value, sentry_sdk.utils.Dsn):
+        self.__dict__ = dict(value.__dict__)
+        return
+    try:
+        _orig_dsn_init(self, value, org_id)
+    except sentry_sdk.utils.BadDsn:
+        parts = urlsplit(str(value))
+        if parts.scheme not in ("http", "https") or not parts.hostname or not parts.username:
+            raise
+        self.scheme = parts.scheme
+        self.host = parts.hostname
+        self.org_id = org_id
+        self.port = parts.port or (443 if self.scheme == "https" else 80)
+        self.public_key = parts.username
+        self.secret_key = parts.password
+        segments = [s for s in parts.path.split("/") if s]
+        if segments and segments[0] == "api":
+            segments.pop(0)
+        self.project_id = segments[-1] if segments else ""
+        self.path = "/"
+
+
+sentry_sdk.utils.Dsn.__init__ = _ichnoscope_dsn_init
+
+
+def get_ichnoscope_dsn() -> str:
+    """Resolve DSN for Ichnoscope / Sentry SDK from environment variables."""
+    return (
+        os.environ.get("ICHNOSCOPE_DSN", "").strip()
+        or os.environ.get("SENTRY_DSN", "").strip()
+    )
+
+
+def get_environment() -> str:
+    """Resolve environment tag from environment variables with fallback to production."""
+    return (
+        os.environ.get("ENVIRONMENT", "").strip()
+        or os.environ.get("SENTRY_ENVIRONMENT", "").strip()
+        or "production"
+    )
+
+
+def get_traces_sample_rate() -> float:
+    """Resolve traces sample rate from environment variables, defaulting to 1.0 (or 0.1 for high-traffic)."""
+    rate_str = os.environ.get("TRACES_SAMPLE_RATE", "").strip()
+    if rate_str:
+        try:
+            return float(rate_str)
+        except ValueError:
+            pass
+    return 1.0
 
 
 def resolve_release_identifier() -> str:
@@ -49,17 +108,28 @@ def _capture_hook(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any]
 
 
 def init_observability() -> None:
-    """Initialize Sentry SDK with Flask integration and custom in-app frame scopes."""
-    dsn = os.environ.get("SENTRY_DSN", "")
+    """Initialize Sentry-compatible Ichnoscope SDK before route handlers are loaded."""
+    # Ensure fresh environment variables from .env are loaded
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(override=False)
+    except ImportError:
+        pass
+
+    dsn = get_ichnoscope_dsn()
     release = resolve_release_identifier()
-    environment = os.environ.get("SENTRY_ENVIRONMENT", "production")
+    environment = get_environment()
+    traces_sample_rate = get_traces_sample_rate()
 
     sentry_sdk.init(
         dsn=dsn,
         release=release,
         environment=environment,
+        traces_sample_rate=traces_sample_rate,
+        send_default_pii=False,
         integrations=[FlaskIntegration()],
         in_app_include=["app", "routes", "services"],
         before_send=_capture_hook,
-        traces_sample_rate=1.0,
     )
+

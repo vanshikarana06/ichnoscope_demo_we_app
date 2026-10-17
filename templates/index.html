@@ -146,6 +146,14 @@
         </div>
         <button class="btn btn-danger" onclick="executeReq('POST', '/discounts/apply', {codes: ['INVALID99'], subtotal: 5000})">Trigger IndexError</button>
       </div>
+
+      <div class="card" style="border-color: rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.05);">
+        <div>
+          <h3 style="color: #a5b4fc;">⚡ 6. Ichnoscope Pipeline Test Error</h3>
+          <p>Triggers deliberate exception on <span class="meta-code">/api/debug/test-error</span> to verify telemetry delivery to the Ichnoscope incident pipeline.</p>
+        </div>
+        <button class="btn btn-danger" style="background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); color: #c7d2fe;" onclick="executeReq('GET', '/api/debug/test-error')">Trigger /api/debug/test-error</button>
+      </div>
     </div>
 
     <div class="terminal-container">

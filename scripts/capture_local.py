@@ -16,6 +16,7 @@ DEFAULT_COUNTS = {
     "inventory": {"event_count": 8, "users_affected": 4},
     "shipping": {"event_count": 35, "users_affected": 14},
     "discounts": {"event_count": 15, "users_affected": 6},
+    "debug": {"event_count": 1, "users_affected": 1},
 }
 
 SCENARIOS = {
@@ -42,6 +43,10 @@ SCENARIOS = {
         "method": "POST",
         "path": "/discounts/apply",
         "json": {"codes": ["INVALID99"], "subtotal": 5000},
+    },
+    "debug": {
+        "method": "GET",
+        "path": "/api/debug/test-error",
     },
 }
 

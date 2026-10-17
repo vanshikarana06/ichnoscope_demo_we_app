@@ -33,6 +33,10 @@ TRIGGERS = {
         "path": "/discounts/apply",
         "json": {"codes": ["INVALID99"], "subtotal": 5000},
     },
+    "debug": {
+        "method": "GET",
+        "path": "/api/debug/test-error",
+    },
 }
 
 
@@ -65,6 +69,6 @@ def trigger(scenario_id: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python scripts/trigger_bug.py <payment|cart|inventory|shipping|discounts>")
+        print("Usage: python scripts/trigger_bug.py <payment|cart|inventory|shipping|discounts|debug>")
         sys.exit(1)
     trigger(sys.argv[1].lower())

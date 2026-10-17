@@ -84,3 +84,38 @@ def test_discounts_apply_happy_path(client):
     assert data["applied_code"] == "WELCOME10"
     assert data["discount_amount_cents"] == 500
     assert data["new_subtotal_cents"] == 4500
+
+
+def test_debug_test_error_endpoint_raises(client):
+    """Debug endpoint /api/debug/test-error raises intentional RuntimeError to verify pipeline telemetry."""
+    with pytest.raises(RuntimeError, match="Intentional test exception for Ichnoscope telemetry verification"):
+        client.get("/api/debug/test-error")
+
+
+def test_debug_test_error_endpoint_500_response():
+    """In non-testing mode, debug endpoint returns 500 JSON response."""
+    app = create_app()
+    app.config["TESTING"] = False
+    with app.test_client() as client:
+        resp = client.get("/api/debug/test-error")
+        assert resp.status_code == 500
+        data = resp.json
+        assert data["error"] == "Internal Server Error"
+        assert "Intentional test exception for Ichnoscope telemetry verification" in data["message"]
+
+
+
+def test_observability_configuration():
+    """Verify Sentry-compatible Ichnoscope SDK configuration options."""
+    import sentry_sdk
+    from observability import get_ichnoscope_dsn, get_environment, get_traces_sample_rate
+
+    dsn = get_ichnoscope_dsn()
+    assert "ichnoisapi.onrender.com" in dsn or "sentry.io" in dsn
+    assert get_environment() in ("production", "development", "staging")
+    assert get_traces_sample_rate() in (1.0, 0.1)
+
+    client = sentry_sdk.get_client()
+    assert client.options.get("send_default_pii") is False
+    assert client.options.get("traces_sample_rate") in (1.0, 0.1)
+
